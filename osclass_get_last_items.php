@@ -13,10 +13,11 @@ add_action('init', 'osclass_get_last_items') ;
 
 function osclass_get_last_items()
 {
-	$db_host = get_option('osclass_db_host') ;
-	$db_name = get_option('osclass_db_name') ;
-	$db_user = get_option('osclass_db_user') ;
-	$db_password = get_option('osclass_db_password') ;
+    $db_host      = get_option('osclass_db_host') ;
+    $db_name      = get_option('osclass_db_name') ;
+    $db_user      = get_option('osclass_db_user') ;
+    $db_password  = get_option('osclass_db_password') ;
+    $table_prefix = get_option('osclass_db_table_prefix');
 
 	if (!$db_host || !$db_name || !$db_user || !$db_password) {
 		echo 'Could not get the last items from OSClass installation. Check your database configuration.' ;
@@ -32,11 +33,11 @@ function osclass_get_last_items()
 		echo 'Can not select the specified OSClass database, please check your database configuration.' ;
 		return ;
 	}
-	$num_items = get_option('osclass_num_items') ;
+	$num_items       = get_option('osclass_num_items') ;
 	$currency_before = get_option('osclass_currency_before') ;
 
 	$query = 'SELECT pk_i_id, fk_i_category_id, dt_pub_date, f_price, fk_c_currency_code ' ;	
-	$query .= 'FROM oc_i_item ' ;
+	$query .= 'FROM ' . $table_prefix . '_item ' ;
 	$query .= 'WHERE e_status = \'ACTIVE\' ';
 	$query .= 'ORDER BY dt_pub_date desc ' ;
 	$query .= 'LIMIT '.($num_items ? $num_items : '10') ;
@@ -56,7 +57,7 @@ function osclass_get_last_items()
 	}
 
 	$query = 'SELECT fk_i_item_id, s_title, s_description, s_what ' ;	
-	$query .= 'FROM oc_i_item_description ' ;
+	$query .= 'FROM ' . $table_prefix .  '_item_description ' ;
 	$query .= 'WHERE fk_i_item_id IN('.$items_ids.') ';
 	if (!($result = mysql_query($query))) {
 		echo 'Items found but could not get the data for the items.' ;
@@ -95,6 +96,7 @@ function osclas_get_last_items_install()
 	add_option('osclass_db_name', '', '', 'yes');
 	add_option('osclass_db_user', '', '', 'yes');
 	add_option('osclass_db_password', '', '', 'yes');
+	add_option('osclass_db_table_prefix', '', '', 'yes');
 	add_option('osclass_num_items', 10, '', 'yes');
 	add_option('osclass_currency_before', 0, '', 'yes');
 }
@@ -105,13 +107,15 @@ function osclas_get_last_items_remove()
 {
 	/* Removes plugin database files */
 	delete_option('osclass_db_host') ;
-	delete_option('osclass_db_host');
 	delete_option('osclass_db_name');
 	delete_option('osclass_db_user');
 	delete_option('osclass_db_password');
+	delete_option('osclass_db_table_prefix');
 	delete_option('osclass_num_items');
 	delete_option('osclass_currency_before');
 }
+
+
 
 if (is_admin()) {
 	/* Call the html code */
@@ -122,13 +126,14 @@ if (is_admin()) {
 		add_options_page('OSClass Get last items settings page', 'OSClass Last Items', 'administrator',
 			'osclass-get-last-items', 'osclass_get_last_items_admin_page');
 	}
-	
+
 	function osclass_get_last_items_admin_page() {
         if( isset($_POST['submit']) ) {
             update_option('osclass_db_host', $_POST['osclass_db_host']);
             update_option('osclass_db_name', $_POST['osclass_db_name']);
             update_option('osclass_db_user', $_POST['osclass_db_user']);
             update_option('osclass_db_password', $_POST['osclass_db_password']);
+            update_option('osclass_db_table_prefix', $_POST['osclass_db_table_prefix']);
             update_option('osclass_num_items', $_POST['osclass_num_items']);
             update_option('osclass_currency_before', (isset($_POST['osclass_currency_before'])) ? 1 : 0 );
         }
@@ -161,6 +166,12 @@ if (is_admin()) {
                         <th width="92" scope="row">OSClass Database Password</th>
                         <td width="406">
                             <input name="osclass_db_password" type="text" id="osclass_db_password" value="<?php echo get_option('osclass_db_password'); ?>" /> (ex. joe)
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th width="92" scope="row">OSClass Table Prefix</th>
+                        <td width="406">
+                            <input name="osclass_db_table_prefix" type="text" id="osclass_db_table_prefix" value="<?php echo get_option('osclass_db_table_prefix'); ?>" /> (ex. joe)
                         </td>
                     </tr>
                     <tr valign="top">
