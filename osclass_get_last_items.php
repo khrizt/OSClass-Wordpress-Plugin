@@ -101,7 +101,7 @@ function osclas_get_last_items_install()
 
 register_deactivation_hook(__FILE__, 'osclas_get_last_items_remove');
 
-function osclas_get_last_items_install()
+function osclas_get_last_items_remove()
 {
 	/* Removes plugin database files */
 	delete_option('osclass_db_host') ;
