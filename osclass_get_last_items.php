@@ -10,6 +10,7 @@ License: GPL
 */
 
 // add_action('init', 'osclass_get_last_items') ;
+add_shortcode( 'osclass-last-items', 'osclass_get_last_items' );
 
 function osclass_get_last_items()
 {
@@ -19,25 +20,26 @@ function osclass_get_last_items()
     $db_password  = get_option('osclass_db_password') ;
     $table_prefix = get_option('osclass_db_table_prefix');
 
-	if (!$db_host || !$db_name || !$db_user || !$db_password) {
+	if (!$db_host || !$db_name || !$db_user) {
 		echo 'Could not get the last items from OSClass installation. Check your database configuration.' ;
 		return ;
 	}
 
-	if (!($db = mysql_connect($db_host, $db_user, $db_password))) {
-		echo 'Could not connect to OSClass database, please check your database configuration.' ;
+    if (!($db = mysql_connect($db_host, $db_user, $db_password, true))) {
+		echo 'Can not connect to OSClass database, please check your database configuration.' ;
 		return ;
-	}
-	
+    }
+
 	if (!mysql_select_db($db_name, $db)) {
 		echo 'Can not select the specified OSClass database, please check your database configuration.' ;
 		return ;
 	}
+
 	$num_items       = get_option('osclass_num_items') ;
 	$currency_before = get_option('osclass_currency_before') ;
 
 	$query = 'SELECT pk_i_id, fk_i_category_id, dt_pub_date, f_price, fk_c_currency_code ' ;	
-	$query .= 'FROM ' . $table_prefix . '_item ' ;
+	$query .= 'FROM ' . $table_prefix . 't_item ' ;
 	$query .= 'WHERE e_status = \'ACTIVE\' ';
 	$query .= 'ORDER BY dt_pub_date desc ' ;
 	$query .= 'LIMIT '.($num_items ? $num_items : '10') ;
@@ -57,7 +59,7 @@ function osclass_get_last_items()
 	}
 
 	$query = 'SELECT fk_i_item_id, s_title, s_description, s_what ' ;	
-	$query .= 'FROM ' . $table_prefix .  '_item_description ' ;
+	$query .= 'FROM ' . $table_prefix .  't_item_description ' ;
 	$query .= 'WHERE fk_i_item_id IN('.$items_ids.') ';
 	if (!($result = mysql_query($query))) {
 		echo 'Items found but could not get the data for the items.' ;
@@ -65,7 +67,7 @@ function osclass_get_last_items()
 	}
 
 	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
-	    $items[$row['pk_i_id']] = array_merge($items[$row['pk_i_id']], $row) ;
+	    $items[$row['fk_i_item_id']] = array_merge($items[$row['fk_i_item_id']], $row) ;
 	}
 
 	$html = '<div class="osclass_wrapper">' ;
@@ -84,6 +86,7 @@ function osclass_get_last_items()
 		$html .= '</div>' ;
 	}
 	$html .= '</div>' ;
+    echo $html;
 }
 
 /* Runs when plugin is activated */
