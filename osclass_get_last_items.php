@@ -9,7 +9,7 @@ Author URI: http://www.christianfuentes.net
 License: GPL
 */
 
-add_action('init', 'osclass_get_last_items') ;
+// add_action('init', 'osclass_get_last_items') ;
 
 function osclass_get_last_items()
 {
@@ -115,11 +115,38 @@ function osclas_get_last_items_remove()
 	delete_option('osclass_currency_before');
 }
 
+function osclass_warning() {
+    echo "
+    <div id='osclass-warning' class='updated fade'><p><strong>".__('OSClass last items is almost ready.')."</strong> ".sprintf(__('You must <a href="%1$s">configure</a> the plugin.'), "options-general.php?page=osclass-get-last-items")."</p></div>
+    ";
+}
 
+function osclass_admin_warnings() {
+
+    $db_host      = get_option('osclass_db_host') ;
+    $db_name      = get_option('osclass_db_name') ;
+    $db_user      = get_option('osclass_db_user') ;
+    $db_password  = get_option('osclass_db_password') ;
+    $table_prefix = get_option('osclass_db_table_prefix');
+
+    $db = mysql_connect($db_host, $db_user, $db_password, true);
+	if ($db === false) {
+        add_action('admin_notices', 'osclass_warning');
+        return false;
+    }
+
+    if(!mysql_select_db($db_name, $db)) {
+        add_action('admin_notices', 'osclass_warning');
+        return false;
+    }
+
+    return true;
+}
 
 if (is_admin()) {
 	/* Call the html code */
 	add_action('admin_menu', 'osclass_get_last_items_admin_menu');
+    osclass_admin_warnings();
 
 	function osclass_get_last_items_admin_menu()
 	{
